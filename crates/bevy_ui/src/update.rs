@@ -1,4 +1,4 @@
-use super::Node;
+use super::UINode;
 use bevy_ecs::{
     entity::Entity,
     query::{With, Without},
@@ -9,8 +9,8 @@ use bevy_transform::prelude::{Children, Parent, Transform};
 pub const UI_Z_STEP: f32 = 0.001;
 
 pub fn ui_z_system(
-    root_node_query: Query<Entity, (With<Node>, Without<Parent>)>,
-    mut node_query: Query<&mut Transform, With<Node>>,
+    root_node_query: Query<Entity, (With<UINode>, Without<Parent>)>,
+    mut node_query: Query<&mut Transform, With<UINode>>,
     children_query: Query<&Children>,
 ) {
     let mut current_global_z = 0.0;
@@ -27,7 +27,7 @@ pub fn ui_z_system(
 
 fn update_hierarchy(
     children_query: &Query<&Children>,
-    node_query: &mut Query<&mut Transform, With<Node>>,
+    node_query: &mut Query<&mut Transform, With<UINode>>,
     entity: Entity,
     parent_global_z: f32,
     mut current_global_z: f32,
@@ -59,16 +59,16 @@ mod tests {
     };
     use bevy_transform::{components::Transform, hierarchy::BuildChildren};
 
-    use crate::Node;
+    use crate::UINode;
 
     use super::{ui_z_system, UI_Z_STEP};
 
-    fn node_with_transform(name: &str) -> (String, Node, Transform) {
-        (name.to_owned(), Node::default(), Transform::identity())
+    fn node_with_transform(name: &str) -> (String, UINode, Transform) {
+        (name.to_owned(), UINode::default(), Transform::identity())
     }
 
-    fn node_without_transform(name: &str) -> (String, Node) {
-        (name.to_owned(), Node::default())
+    fn node_without_transform(name: &str) -> (String, UINode) {
+        (name.to_owned(), UINode::default())
     }
 
     fn get_steps(transform: &Transform) -> u32 {

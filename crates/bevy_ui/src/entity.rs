@@ -1,4 +1,4 @@
-use super::Node;
+use super::UINode;
 use crate::{
     render::UI_PIPELINE_HANDLE,
     widget::{Button, Image},
@@ -19,7 +19,7 @@ use bevy_transform::prelude::{GlobalTransform, Transform};
 
 #[derive(Bundle, Clone, Debug)]
 pub struct NodeBundle {
-    pub node: Node,
+    pub node: UINode,
     pub style: Style,
     pub mesh: Handle<Mesh>, // TODO: maybe abstract this out
     pub material: Handle<ColorMaterial>,
@@ -53,7 +53,7 @@ impl Default for NodeBundle {
 
 #[derive(Bundle, Clone, Debug)]
 pub struct ImageBundle {
-    pub node: Node,
+    pub node: UINode,
     pub style: Style,
     pub image: Image,
     pub calculated_size: CalculatedSize,
@@ -91,7 +91,7 @@ impl Default for ImageBundle {
 
 #[derive(Bundle, Clone, Debug)]
 pub struct TextBundle {
-    pub node: Node,
+    pub node: UINode,
     pub style: Style,
     pub draw: Draw,
     pub visible: Visible,
@@ -125,7 +125,7 @@ impl Default for TextBundle {
 
 #[derive(Bundle, Clone, Debug)]
 pub struct ButtonBundle {
-    pub node: Node,
+    pub node: UINode,
     pub button: Button,
     pub style: Style,
     pub interaction: Interaction,

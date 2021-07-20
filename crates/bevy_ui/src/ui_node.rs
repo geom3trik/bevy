@@ -2,12 +2,13 @@ use bevy_ecs::reflect::ReflectComponent;
 use bevy_math::{Rect, Size, Vec2};
 use bevy_reflect::{Reflect, ReflectDeserialize};
 use bevy_render::renderer::RenderResources;
+use morphorm::{PositionType, LayoutType, Units};
 use serde::{Deserialize, Serialize};
 use std::ops::{Add, AddAssign};
 
 #[derive(Debug, Clone, Default, RenderResources, Reflect)]
 #[reflect(Component)]
-pub struct Node {
+pub struct UINode {
     pub size: Vec2,
 }
 
@@ -49,206 +50,50 @@ impl AddAssign<f32> for Val {
     }
 }
 
-#[derive(Clone, PartialEq, Debug, Reflect)]
-#[reflect(Component, PartialEq)]
+#[derive(Clone, PartialEq, Debug, Default)]
 pub struct Style {
-    pub display: Display,
     pub position_type: PositionType,
-    pub direction: Direction,
-    pub flex_direction: FlexDirection,
-    pub flex_wrap: FlexWrap,
-    pub align_items: AlignItems,
-    pub align_self: AlignSelf,
-    pub align_content: AlignContent,
-    pub justify_content: JustifyContent,
-    pub position: Rect<Val>,
-    pub margin: Rect<Val>,
-    pub padding: Rect<Val>,
-    pub border: Rect<Val>,
-    pub flex_grow: f32,
-    pub flex_shrink: f32,
-    pub flex_basis: Val,
-    pub size: Size<Val>,
-    pub min_size: Size<Val>,
-    pub max_size: Size<Val>,
-    pub aspect_ratio: Option<f32>,
-}
+    pub layout_type: LayoutType,
 
-impl Default for Style {
-    fn default() -> Self {
-        Self {
-            display: Default::default(),
-            position_type: Default::default(),
-            direction: Default::default(),
-            flex_direction: Default::default(),
-            flex_wrap: Default::default(),
-            align_items: Default::default(),
-            align_self: Default::default(),
-            align_content: Default::default(),
-            justify_content: Default::default(),
-            position: Default::default(),
-            margin: Default::default(),
-            padding: Default::default(),
-            border: Default::default(),
-            flex_grow: 0.0,
-            flex_shrink: 1.0,
-            flex_basis: Val::Auto,
-            size: Size::new(Val::Auto, Val::Auto),
-            min_size: Size::new(Val::Auto, Val::Auto),
-            max_size: Size::new(Val::Auto, Val::Auto),
-            aspect_ratio: Default::default(),
-        }
-    }
-}
+    pub left: Units,
+    pub right: Units,
+    pub top: Units,
+    pub bottom: Units,
 
-#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize, Reflect)]
-#[reflect_value(PartialEq, Serialize, Deserialize)]
-pub enum AlignItems {
-    FlexStart,
-    FlexEnd,
-    Center,
-    Baseline,
-    Stretch,
-}
+    pub min_left: Units,
+    pub max_left: Units,
+    pub min_right: Units,
+    pub max_right: Units,
+    pub min_top: Units,
+    pub max_top: Units,
+    pub min_bottom: Units,
+    pub max_bottom: Units,
 
-impl Default for AlignItems {
-    fn default() -> AlignItems {
-        AlignItems::Stretch
-    }
-}
+    pub width: Units,
+    pub height: Units,
 
-#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize, Reflect)]
-#[reflect_value(PartialEq, Serialize, Deserialize)]
-pub enum AlignSelf {
-    Auto,
-    FlexStart,
-    FlexEnd,
-    Center,
-    Baseline,
-    Stretch,
-}
+    pub min_width: Units,
+    pub max_width: Units,
+    pub min_height: Units,
+    pub max_height: Units,
 
-impl Default for AlignSelf {
-    fn default() -> AlignSelf {
-        AlignSelf::Auto
-    }
-}
+    pub child_left: Units,
+    pub child_right: Units,
+    pub child_top: Units,
+    pub child_bottom: Units,
 
-#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize, Reflect)]
-#[reflect_value(PartialEq, Serialize, Deserialize)]
-pub enum AlignContent {
-    FlexStart,
-    FlexEnd,
-    Center,
-    Stretch,
-    SpaceBetween,
-    SpaceAround,
-}
+    pub row_between: Units,
+    pub col_between: Units,
 
-impl Default for AlignContent {
-    fn default() -> AlignContent {
-        AlignContent::Stretch
-    }
-}
+    pub grid_rows: Vec<Units>,
+    pub grid_cols: Vec<Units>,
 
-#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize, Reflect)]
-#[reflect_value(PartialEq, Serialize, Deserialize)]
-pub enum Direction {
-    Inherit,
-    Ltr,
-    Rtl,
-}
+    pub row_index: usize,
+    pub col_index: usize,
+    pub row_span: usize,
+    pub col_span: usize,
 
-impl Default for Direction {
-    fn default() -> Direction {
-        Direction::Inherit
-    }
-}
-
-#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize, Reflect)]
-#[reflect_value(PartialEq, Serialize, Deserialize)]
-pub enum Display {
-    Flex,
-    None,
-}
-
-impl Default for Display {
-    fn default() -> Display {
-        Display::Flex
-    }
-}
-
-#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize, Reflect)]
-#[reflect_value(PartialEq, Serialize, Deserialize)]
-pub enum FlexDirection {
-    Row,
-    Column,
-    RowReverse,
-    ColumnReverse,
-}
-
-impl Default for FlexDirection {
-    fn default() -> FlexDirection {
-        FlexDirection::Row
-    }
-}
-
-#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize, Reflect)]
-#[reflect_value(PartialEq, Serialize, Deserialize)]
-pub enum JustifyContent {
-    FlexStart,
-    FlexEnd,
-    Center,
-    SpaceBetween,
-    SpaceAround,
-    SpaceEvenly,
-}
-
-impl Default for JustifyContent {
-    fn default() -> JustifyContent {
-        JustifyContent::FlexStart
-    }
-}
-
-// TODO: add support for overflow settings
-// #[derive(Copy, Clone, PartialEq, Debug)]
-// pub enum Overflow {
-//     Visible,
-//     Hidden,
-//     Scroll,
-// }
-
-// impl Default for Overflow {
-//     fn default() -> Overflow {
-//         Overflow::Visible
-//     }
-// }
-
-#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize, Reflect)]
-#[reflect_value(PartialEq, Serialize, Deserialize)]
-pub enum PositionType {
-    Relative,
-    Absolute,
-}
-
-impl Default for PositionType {
-    fn default() -> PositionType {
-        PositionType::Relative
-    }
-}
-
-#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize, Reflect)]
-#[reflect_value(PartialEq, Serialize, Deserialize)]
-pub enum FlexWrap {
-    NoWrap,
-    Wrap,
-    WrapReverse,
-}
-
-impl Default for FlexWrap {
-    fn default() -> FlexWrap {
-        FlexWrap::NoWrap
-    }
+    pub border: Units,
 }
 
 #[derive(Default, Copy, Clone, Debug)]

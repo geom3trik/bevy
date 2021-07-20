@@ -1,4 +1,4 @@
-use crate::{CalculatedSize, Node, Style, Val};
+use crate::{CalculatedSize, UINode, Style, Val};
 use bevy_asset::Assets;
 use bevy_ecs::{
     entity::Entity,
@@ -17,6 +17,7 @@ use bevy_sprite::{TextureAtlas, QUAD_HANDLE};
 use bevy_text::{DefaultTextPipeline, DrawableText, Font, FontAtlasSet, Text, TextError};
 use bevy_transform::prelude::GlobalTransform;
 use bevy_window::Windows;
+use morphorm::Units;
 
 #[derive(Debug, Default)]
 pub struct QueuedText {
@@ -29,13 +30,13 @@ fn scale_value(value: f32, factor: f64) -> f32 {
 
 /// Defines how min_size, size, and max_size affects the bounds of a text
 /// block.
-pub fn text_constraint(min_size: Val, size: Val, max_size: Val, scale_factor: f64) -> f32 {
+pub fn text_constraint(min_size: Units, size: Units, max_size: Units, scale_factor: f64) -> f32 {
     // Needs support for percentages
     match (min_size, size, max_size) {
-        (_, _, Val::Px(max)) => scale_value(max, scale_factor),
-        (Val::Px(min), _, _) => scale_value(min, scale_factor),
-        (Val::Undefined, Val::Px(size), Val::Undefined) => scale_value(size, scale_factor),
-        (Val::Auto, Val::Px(size), Val::Auto) => scale_value(size, scale_factor),
+        (_, _, Units::Pixels(max)) => scale_value(max, scale_factor),
+        (Units::Pixels(min), _, _) => scale_value(min, scale_factor),
+        (Units::Auto, Units::Pixels(size), Units::Auto) => scale_value(size, scale_factor),
+        (Units::Auto, Units::Pixels(size), Units::Auto) => scale_value(size, scale_factor),
         _ => f32::MAX,
     }
 }
@@ -91,15 +92,15 @@ pub fn text_system(
         if let Ok((text, style, mut calculated_size)) = query.get_mut(entity) {
             let node_size = Size::new(
                 text_constraint(
-                    style.min_size.width,
-                    style.size.width,
-                    style.max_size.width,
+                    style.min_width,
+                    style.width,
+                    style.max_width,
                     scale_factor,
                 ),
                 text_constraint(
-                    style.min_size.height,
-                    style.size.height,
-                    style.max_size.height,
+                    style.min_height,
+                    style.height,
+                    style.max_height,
                     scale_factor,
                 ),
             );
@@ -148,7 +149,7 @@ pub fn draw_text_system(
     mut render_resource_bindings: ResMut<RenderResourceBindings>,
     text_pipeline: Res<DefaultTextPipeline>,
     mut query: Query<
-        (Entity, &mut Draw, &Visible, &Text, &Node, &GlobalTransform),
+        (Entity, &mut Draw, &Visible, &Text, &UINode, &GlobalTransform),
         Without<OutsideFrustum>,
     >,
 ) {

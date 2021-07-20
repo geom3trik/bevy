@@ -1,4 +1,4 @@
-use crate::Node;
+use crate::UINode;
 use bevy_core::FloatOrd;
 use bevy_ecs::{
     entity::Entity,
@@ -47,7 +47,7 @@ pub fn ui_focus_system(
     touches_input: Res<Touches>,
     mut node_query: Query<(
         Entity,
-        &Node,
+        &UINode,
         &GlobalTransform,
         Option<&mut Interaction>,
         Option<&FocusPolicy>,

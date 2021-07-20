@@ -1,5 +1,6 @@
 mod anchors;
-mod flex;
+// mod flex;
+mod layout;
 mod focus;
 mod margins;
 mod render;
@@ -10,9 +11,11 @@ pub mod update;
 pub mod widget;
 
 pub use anchors::*;
-pub use flex::*;
+pub use layout::*;
 pub use focus::*;
 pub use margins::*;
+use layout::LayoutCache;
+use morphorm::{LayoutType, PositionType, Units};
 pub use render::*;
 pub use ui_node::*;
 
@@ -44,22 +47,10 @@ pub enum UiSystem {
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.init_resource::<FlexSurface>()
-            .register_type::<AlignContent>()
-            .register_type::<AlignItems>()
-            .register_type::<AlignSelf>()
-            .register_type::<Direction>()
-            .register_type::<Display>()
-            .register_type::<FlexDirection>()
-            .register_type::<FlexWrap>()
-            .register_type::<JustifyContent>()
-            .register_type::<Node>()
-            .register_type::<PositionType>()
-            .register_type::<Size<f32>>()
-            .register_type::<Size<Val>>()
-            .register_type::<Rect<Val>>()
-            .register_type::<Style>()
-            .register_type::<Val>()
+        app.init_resource::<LayoutCache>()
+            // .register_type::<LayoutType>()
+            // .register_type::<PositionType>()
+            // .register_type::<Units>()
             .add_system_to_stage(
                 CoreStage::PreUpdate,
                 ui_focus_system
@@ -76,20 +67,27 @@ impl Plugin for UiPlugin {
                 CoreStage::PostUpdate,
                 widget::image_node_system.system().before(UiSystem::Flex),
             )
+            // .add_system_to_stage(
+            //     CoreStage::PostUpdate,
+            //     flex_node_system
+            //         .system()
+            //         .label(UiSystem::Flex)
+            //         .before(TransformSystem::TransformPropagate),
+            // )
             .add_system_to_stage(
                 CoreStage::PostUpdate,
-                flex_node_system
+                layout_node_system
                     .system()
                     .label(UiSystem::Flex)
                     .before(TransformSystem::TransformPropagate),
             )
-            .add_system_to_stage(
-                CoreStage::PostUpdate,
-                ui_z_system
-                    .system()
-                    .after(UiSystem::Flex)
-                    .before(TransformSystem::TransformPropagate),
-            )
+            // .add_system_to_stage(
+            //     CoreStage::PostUpdate,
+            //     ui_z_system
+            //         .system()
+            //         .after(UiSystem::Flex)
+            //         .before(TransformSystem::TransformPropagate),
+            // )
             .add_system_to_stage(RenderStage::Draw, widget::draw_text_system.system());
 
         crate::render::add_ui_graph(app.world_mut());
