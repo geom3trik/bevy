@@ -1,22 +1,330 @@
-use bevy_ecs::{prelude::{Bundle, Commands, Entity, World}, system::{Command, EntityCommands}};
-use bevy_transform::hierarchy::PushChildren;
+use std::iter::Rev;
+
+use bevy_ecs::{prelude::*, system::{Command, EntityCommands}};
+use bevy_math::Vec2;
+use bevy_transform::components::{Parent, Transform};
 use bevy_utils::HashMap;
-use bevy_ecs::{
-    query::{Changed, FilterFetch, With, Without, WorldQuery},
-    system::{Query, Res, ResMut},
-};
-
-use super::Style;
-use super::UINode;
-
 use bevy_window::Windows;
-use morphorm::{Cache, layout};
 use smallvec::SmallVec;
+use super::{Node, Style};
 
-use self::iterators::{NodeEntity, NodeFirstChild, NodeNextSibling, NodeParent, Tree};
+use morphorm::{Cache, Hierarchy, LayoutType, PositionType, Units};
 
-mod iterators;
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct NodeEntity(pub Entity);
 
+impl NodeEntity {
+    pub fn entity(&self) -> Entity {
+        self.0
+    }
+}
+
+impl<'world> morphorm::Node<'world> for NodeEntity {
+    type Data = Query<'world, &'static Style>;
+
+    fn is_visible(&self, query: &Self::Data) -> bool {
+        true
+    }
+
+    fn layout_type(&self, query: &Self::Data) -> Option<LayoutType> {
+        query.get(self.entity()).map_or(None, |style| Some(style.layout_type))
+    }
+
+    fn position_type(&self, query: &Self::Data) -> Option<PositionType> {
+        query.get(self.entity()).map_or(None, |style| Some(style.position_type))
+    }
+
+    fn width(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.width))
+    }
+
+    fn height(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.height))
+    }
+
+    fn left(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.left))
+    }
+    fn right(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.right))
+    }
+    fn top(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.top))
+    }
+    fn bottom(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.bottom))
+    }
+
+    fn child_left(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.child_left))
+    }
+
+    fn child_right(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.child_right))
+    }
+
+    fn child_top(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.child_top))
+    }
+
+    fn child_bottom(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.child_bottom))
+    }
+
+    fn min_left(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.min_left))
+    }
+
+    fn min_right(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.min_right))
+    }
+
+    fn min_top(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.min_top))
+    }
+
+    fn min_bottom(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.min_bottom))
+    }
+
+    fn max_left(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.max_left))
+    }
+
+    fn max_right(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.max_right))
+    }
+
+    fn max_top(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.max_top))
+    }
+
+    fn max_bottom(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.max_bottom))
+    }
+
+    fn min_width(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.min_width))
+    }
+
+    fn max_width(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.max_width))
+    }
+
+    fn min_height(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.min_height))
+    }
+
+    fn max_height(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.max_height))
+    }
+
+    fn row_between(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.row_between))
+    }
+
+    fn col_between(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.col_between))
+    }
+
+    fn grid_rows(&self, query: &Self::Data) -> Option<Vec<Units>> {
+        query.get(self.entity()).map_or(None, |style| Some(style.grid_rows.clone()))
+    }
+
+    fn grid_cols(&self, query: &Self::Data) -> Option<Vec<Units>> {
+        query.get(self.entity()).map_or(None, |style| Some(style.grid_cols.clone()))
+    }
+
+    fn row_index(&self, query: &Self::Data) -> Option<usize> {
+        query.get(self.entity()).map_or(None, |style| Some(style.row_index))
+    }
+
+    fn col_index(&self, query: &Self::Data) -> Option<usize> {
+        query.get(self.entity()).map_or(None, |style| Some(style.col_index))
+    }
+
+    fn row_span(&self, query: &Self::Data) -> Option<usize> {
+        query.get(self.entity()).map_or(None, |style| Some(style.row_span))
+    }
+
+    fn col_span(&self, query: &Self::Data) -> Option<usize> {
+        query.get(self.entity()).map_or(None, |style| Some(style.col_span))
+    }
+
+    fn border_left(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.border))
+    }
+
+    fn border_right(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.border))
+    }
+
+    fn border_top(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.border))
+    }
+
+    fn border_bottom(&self, query: &Self::Data) -> Option<Units> {
+        query.get(self.entity()).map_or(None, |style| Some(style.border))
+    }
+}
+
+pub struct NodeParent(pub NodeEntity);
+pub struct NodeFirstChild(pub NodeEntity);
+pub struct NodeNextSibling(pub NodeEntity);
+
+
+pub struct Tree<'borrow, 'world> {
+    root: NodeEntity,
+    parent_query: &'borrow Query<'world, &'static NodeParent>,
+    first_child_query: &'borrow Query<'world, &'static NodeFirstChild>,
+    next_sibling_query: &'borrow Query<'world, &'static NodeNextSibling>,
+}
+
+impl<'borrow,'world> Tree<'borrow,'world>
+{
+    pub fn new(root: NodeEntity, parent_query: &'borrow Query<'world, &'static NodeParent>, first_child_query: &'borrow Query<'world, &'static NodeFirstChild>, next_sibling_query: &'borrow Query<'world, &'static NodeNextSibling>) -> Self {
+        Self {
+            root,
+            parent_query,
+            first_child_query,
+            next_sibling_query,
+        }
+    }
+}
+
+impl<'borrow,'world> Tree<'borrow,'world>
+{
+    pub fn flatten(&self) -> Vec<NodeEntity> {
+
+        let iterator = DownwardIterator {
+            parent_query: &self.parent_query,
+            first_child_query: &self.first_child_query,
+            next_sibling_query: &self.next_sibling_query,
+            current_node: Some(self.root),
+        };
+
+        iterator.collect::<Vec<_>>()
+    }
+
+    pub fn get_first_child(&self, node: &NodeEntity) -> Option<&NodeEntity> {
+
+        self.first_child_query.get(node.entity()).map_or(None, |first_child| Some(&first_child.0))
+    }
+
+    pub fn get_next_sibling(&self, node: &NodeEntity) -> Option<&NodeEntity> {
+        self.next_sibling_query.get(node.entity()).map_or(None, |next_sibling| Some(&next_sibling.0))
+    }
+}
+
+impl<'borrow,'world> morphorm::Hierarchy<'borrow> for Tree<'borrow,'world> 
+{
+    type Item = NodeEntity;
+    type DownIter = std::vec::IntoIter<NodeEntity>;
+    type UpIter = Rev<std::vec::IntoIter<NodeEntity>>;
+    type ChildIter = ChildIterator<'borrow, 'world>;
+
+    fn up_iter(&self) -> Self::UpIter {
+        self.flatten().into_iter().rev()
+    }
+
+    fn down_iter(&self) -> Self::DownIter {
+        self.flatten().into_iter()
+    }
+
+    fn parent(&self, node: &Self::Item) -> Option<&Self::Item> {
+        self.parent_query.get(node.entity()).map_or(None, |parent| Some(&parent.0))
+    }
+
+    fn child_iter(&'borrow self, node: &Self::Item) -> Self::ChildIter {
+        ChildIterator {
+            next_sibling_query: &self.next_sibling_query,
+            current_node: self.get_first_child(node),
+        }
+    }
+
+    fn is_first_child(&self, node: &Self::Item) -> bool {
+        if let Some(parent) = self.parent(node) {
+            if let Some(first_child) = self.get_first_child(node) {
+                if first_child == node {
+                    return true;
+                }
+            }
+        }
+
+        false
+    }
+
+    fn is_last_child(&self, node: &Self::Item) -> bool {
+        if let Some(parent) = self.parent(node) {
+            if let Some(mut temp) = self.get_first_child(parent) {
+                while let Some(next_sibling) = self.get_next_sibling(temp) {
+                    temp = next_sibling;
+                }
+
+                if temp == node {
+                    return true;
+                }
+            }
+        }
+
+        false
+    }
+
+}
+
+pub struct DownwardIterator<'borrow,'world> {
+    parent_query: &'borrow Query<'world, &'static NodeParent>,
+    first_child_query: &'borrow Query<'world, &'static NodeFirstChild>,
+    next_sibling_query: &'borrow Query<'world, &'static NodeNextSibling>,
+    current_node: Option<NodeEntity>,
+}
+
+impl<'borrow,'world> Iterator for DownwardIterator<'borrow,'world> {
+    type Item = NodeEntity;
+    fn next(&mut self) -> Option<NodeEntity> {
+
+        let r = self.current_node;
+
+        if let Some(current) = self.current_node {
+
+            if let Ok(first_child) = self.first_child_query.get(current.entity()) {
+                self.current_node = Some(first_child.0);
+            } else {
+                let mut temp = Some(current);
+                while temp.is_some() {
+                    if let Ok(next_sibling) = self.next_sibling_query.get(temp.unwrap().entity()) {
+                        self.current_node = Some(next_sibling.0);
+                        return r;
+                    } else {
+                        temp = self.parent_query.get(temp.unwrap().entity()).map_or(None, |parent| Some(parent.0));
+                    }
+                }
+
+                self.current_node = None;
+            }
+        }
+
+        return r;
+    }
+}
+
+pub struct ChildIterator<'borrow, 'world> {
+    pub next_sibling_query: &'borrow Query<'world, &'static NodeNextSibling>,
+    pub current_node: Option<&'borrow NodeEntity>,
+}
+
+impl<'borrow, 'world> Iterator for ChildIterator<'borrow, 'world> {
+    type Item = &'borrow NodeEntity;
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(entity) = self.current_node {
+            //self.current_node = self.tree.next_sibling[entity.index()].as_ref();
+            self.current_node = self.next_sibling_query.get(entity.entity()).map_or(None, |next_sibling| Some(&next_sibling.0));
+            return Some(entity);
+        }
+
+        None
+    }
+}
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Rect {
@@ -88,7 +396,7 @@ impl LayoutCache {
     }
 }
 
-impl<'a> Cache<'a> for LayoutCache {
+impl morphorm::Cache for LayoutCache {
     type Item = NodeEntity;
 
     fn reset(&mut self) {
@@ -190,19 +498,39 @@ impl<'a> Cache<'a> for LayoutCache {
 
     // Setters
     fn set_child_width_sum(&mut self, node: &Self::Item, value: f32) {
-        *self.child_width_sum.get_mut(node).unwrap() = value;
+        if let Some(child_width_sum) = self.child_width_sum.get_mut(node) {
+            *child_width_sum = value;
+        } else {
+            self.child_width_sum.insert(*node, value);
+        }
+        //*self.child_width_sum.get_mut(node).unwrap() = value;
     }
 
     fn set_child_height_sum(&mut self, node: &Self::Item, value: f32) {
-        *self.child_height_sum.get_mut(node).unwrap() = value;
+        //*self.child_height_sum.get_mut(node).unwrap() = value;
+        if let Some(child_height_sum) = self.child_height_sum.get_mut(node) {
+            *child_height_sum = value;
+        } else {
+            self.child_height_sum.insert(*node, value);
+        }
     }
 
     fn set_child_width_max(&mut self, node: &Self::Item, value: f32) {
-        *self.child_width_max.get_mut(node).unwrap() = value;
+        //*self.child_width_max.get_mut(node).unwrap() = value;
+        if let Some(child_width_max) = self.child_width_max.get_mut(node) {
+            *child_width_max = value;
+        } else {
+            self.child_width_max.insert(*node, value);
+        }
     }
 
     fn set_child_height_max(&mut self, node: &Self::Item, value: f32) {
-        *self.child_height_max.get_mut(node).unwrap() = value;
+        //*self.child_height_max.get_mut(node).unwrap() = value;
+        if let Some(child_height_max) = self.child_height_max.get_mut(node) {
+            *child_height_max = value;
+        } else {
+            self.child_height_max.insert(*node, value);
+        }
     }
 
     fn horizontal_free_space(&self, node: &Self::Item) -> f32 {
@@ -290,30 +618,7 @@ impl<'a> Cache<'a> for LayoutCache {
     }
 }
 
-pub fn layout_node_system(
-    mut layout_cache: ResMut<LayoutCache>,
-    root_node_query: Query<Entity, (With<UINode>, Without<NodeParent>)>,
-    parent_query: Query<&NodeParent>,
-    first_child_query: Query<&NodeFirstChild>,
-    next_sibling_query: Query<&NodeNextSibling>,
-    style_query: Query<(Entity, &Style), (With<UINode>, Changed<Style>)>,
-) {
 
-
-
-    // Loop over the root UI nodes (nodes without parents)
-    for root_node in root_node_query.iter() {
-        // Construct a tree for each root node
-        let tree = Tree::new(NodeEntity(root_node), &parent_query, &first_child_query, &next_sibling_query);
-
-        // Layout the tree
-        layout(layout_cache.as_mut(), &tree, &style_query);
-
-
-    }
-    
-
-}
 
 pub struct PushNodes {
     parent: Entity,
@@ -322,8 +627,9 @@ pub struct PushNodes {
 
 impl Command for PushNodes {
     fn write(self, world: &mut World) {
-        let iter = self.children.iter().enumerate().peekable();
-        for (index, child) in iter {
+        let mut iter = self.children.iter().enumerate().peekable();
+
+        while let Some((index, child)) = iter.next() {
             world
                 .entity_mut(*child)
                 .insert(NodeParent(NodeEntity(self.parent)));
@@ -334,7 +640,7 @@ impl Command for PushNodes {
             }
             if index == 0 {
                 world.entity_mut(self.parent).insert(NodeFirstChild(NodeEntity(*child)));
-            }
+            }            
         }
     }
 }
@@ -389,5 +695,70 @@ impl<'a, 'b> TreeBuilder for EntityCommands<'a, 'b> {
 
         self.commands().add(push_children);
         self
+    }
+}
+
+pub fn root_node_system(
+    windows: Res<Windows>,
+    root_node_query: Query<Entity, (With<Node>, Without<NodeParent>)>,
+    mut style_query: Query<&mut Style>,
+) {
+
+    let window = windows.get_primary().unwrap();
+
+    let window_width = window.physical_width() as f32;        
+    let window_height = window.physical_height() as f32;
+
+    for root_node in root_node_query.iter() {
+        if let Ok(mut style) = style_query.get_mut(root_node) {
+            style.width = Units::Pixels(window_width);
+            style.height = Units::Pixels(window_height);
+        }
+    }
+}
+
+pub fn layout_node_system(
+    windows: Res<Windows>,
+    mut layout_cache: ResMut<LayoutCache>,
+    root_node_query: Query<Entity, (With<Node>, Without<NodeParent>)>,
+    parent_query: Query<&'static NodeParent>,
+    first_child_query: Query<&'static NodeFirstChild>,
+    next_sibling_query: Query<&'static NodeNextSibling>,
+    style_query: Query<&'static Style>,
+    mut node_transform_query: Query<(Entity, &mut Node, &mut Transform, Option<&Parent>)>,
+) {
+
+    for root_node in root_node_query.iter() {
+
+        let tree = Tree::new(NodeEntity(root_node), &parent_query, &first_child_query, &next_sibling_query);
+
+
+        for node in tree.down_iter() {
+            layout_cache.add(node);
+        }
+
+        let window = windows.get_primary().unwrap();       
+        let window_height = window.physical_height() as f32;
+
+        morphorm::layout(layout_cache.as_mut(), &tree, &style_query);
+
+
+    
+        for node in tree.down_iter() {
+            if let Ok((entity, mut uinode, mut transform, parent)) = node_transform_query.get_mut(node.entity()) {
+                let posx = layout_cache.posx(&node);
+                let posy = layout_cache.posy(&node);
+                let width = layout_cache.width(&node);
+                let height = layout_cache.height(&node);
+
+                //println!("{:?} {} {} {} {}", node.entity(), posx, posy, width, height);
+
+                uinode.size = Vec2::new(width, height);
+                let position = &mut transform.translation;
+                position.x = posx + width/2.0;
+                position.y = window_height as f32 - (posy + height/2.0);
+                
+            }
+        }
     }
 }

@@ -1,4 +1,4 @@
-use crate::{CalculatedSize, UINode, Style, Val};
+use crate::{CalculatedSize, Node, Style};
 use bevy_asset::Assets;
 use bevy_ecs::{
     entity::Entity,
@@ -149,7 +149,7 @@ pub fn draw_text_system(
     mut render_resource_bindings: ResMut<RenderResourceBindings>,
     text_pipeline: Res<DefaultTextPipeline>,
     mut query: Query<
-        (Entity, &mut Draw, &Visible, &Text, &UINode, &GlobalTransform),
+        (Entity, &mut Draw, &Visible, &Text, &Node, &GlobalTransform),
         Without<OutsideFrustum>,
     >,
 ) {

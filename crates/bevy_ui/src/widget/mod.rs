@@ -1,7 +1,7 @@
 mod button;
-mod image;
+//mod image;
 mod text;
 
 pub use button::*;
-pub use image::*;
+//pub use image::*;
 pub use text::*;

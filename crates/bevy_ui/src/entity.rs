@@ -1,8 +1,7 @@
-use super::UINode;
+use super::{Node, Style};
 use crate::{
     render::UI_PIPELINE_HANDLE,
-    widget::{Button, Image},
-    CalculatedSize, FocusPolicy, Interaction, Style,
+    widget::{Button}, FocusPolicy, Interaction,
 };
 use bevy_asset::Handle;
 use bevy_ecs::bundle::Bundle;
@@ -19,7 +18,7 @@ use bevy_transform::prelude::{GlobalTransform, Transform};
 
 #[derive(Bundle, Clone, Debug)]
 pub struct NodeBundle {
-    pub node: UINode,
+    pub node: Node,
     pub style: Style,
     pub mesh: Handle<Mesh>, // TODO: maybe abstract this out
     pub material: Handle<ColorMaterial>,
@@ -53,10 +52,10 @@ impl Default for NodeBundle {
 
 #[derive(Bundle, Clone, Debug)]
 pub struct ImageBundle {
-    pub node: UINode,
-    pub style: Style,
-    pub image: Image,
-    pub calculated_size: CalculatedSize,
+    pub node: Node,
+    //pub style: Style,
+    //pub image: Image,
+    //pub calculated_size: CalculatedSize,
     pub mesh: Handle<Mesh>, // TODO: maybe abstract this out
     pub material: Handle<ColorMaterial>,
     pub draw: Draw,
@@ -74,9 +73,9 @@ impl Default for ImageBundle {
                 UI_PIPELINE_HANDLE.typed(),
             )]),
             node: Default::default(),
-            image: Default::default(),
-            calculated_size: Default::default(),
-            style: Default::default(),
+            //image: Default::default(),
+            //calculated_size: Default::default(),
+            //style: Default::default(),
             material: Default::default(),
             draw: Default::default(),
             visible: Visible {
@@ -91,12 +90,12 @@ impl Default for ImageBundle {
 
 #[derive(Bundle, Clone, Debug)]
 pub struct TextBundle {
-    pub node: UINode,
+    pub node: Node,
     pub style: Style,
     pub draw: Draw,
     pub visible: Visible,
     pub text: Text,
-    pub calculated_size: CalculatedSize,
+    //pub calculated_size: CalculatedSize,
     pub focus_policy: FocusPolicy,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
@@ -115,7 +114,7 @@ impl Default for TextBundle {
             },
             text: Default::default(),
             node: Default::default(),
-            calculated_size: Default::default(),
+            //calculated_size: Default::default(),
             style: Default::default(),
             transform: Default::default(),
             global_transform: Default::default(),
@@ -125,9 +124,9 @@ impl Default for TextBundle {
 
 #[derive(Bundle, Clone, Debug)]
 pub struct ButtonBundle {
-    pub node: UINode,
+    pub node: Node,
     pub button: Button,
-    pub style: Style,
+    //pub style: Style,
     pub interaction: Interaction,
     pub focus_policy: FocusPolicy,
     pub mesh: Handle<Mesh>, // TODO: maybe abstract this out
@@ -150,7 +149,7 @@ impl Default for ButtonBundle {
             interaction: Default::default(),
             focus_policy: Default::default(),
             node: Default::default(),
-            style: Default::default(),
+            //style: Default::default(),
             material: Default::default(),
             draw: Default::default(),
             visible: Visible {
