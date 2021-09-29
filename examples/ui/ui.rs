@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-
+use bevy::ui::{LayoutType, PositionType, Units, TreeBuilder};
 /// This example illustrates the various features of Bevy UI.
 fn main() {
     App::build()
@@ -16,6 +16,277 @@ fn setup(
     // ui camera
     commands.spawn_bundle(UiCameraBundle::default());
     // root node
+
+    commands.spawn_bundle(NodeBundle {
+        style: Style {
+            layout_type: LayoutType::Grid,
+            grid_rows: vec![Units::Stretch(1.0), Units::Pixels(200.0), Units::Stretch(1.0), Units::Stretch(1.0)],
+            grid_cols: vec![Units::Stretch(1.0), Units::Stretch(1.0), Units::Pixels(200.0)],
+            ..Default::default()
+        },
+        material: materials.add(Color::AZURE.into()),
+        ..Default::default()
+    }).with_node_children(|parent| {
+        parent.spawn_bundle(NodeBundle {
+            style: Style {
+                row_index: 0,
+                row_span: 1,
+                col_index: 0,
+                col_span: 2,
+                ..Default::default()
+            },
+            material: materials.add(Color::OLIVE.into()),
+            ..Default::default()
+        });
+
+        parent.spawn_bundle(NodeBundle {
+            style: Style {
+                row_index: 0,
+                row_span: 1,
+                col_index: 2,
+                col_span: 1,
+                ..Default::default()
+            },
+            material: materials.add(Color::VIOLET.into()),
+            ..Default::default()
+        });
+
+        parent.spawn_bundle(NodeBundle {
+            style: Style {
+                row_index: 1,
+                row_span: 2,
+                col_index: 0,
+                col_span: 1,
+                layout_type: LayoutType::Grid,
+                grid_rows: vec![Units::Stretch(1.0), Units::Pixels(75.0), Units::Stretch(1.0), Units::Stretch(1.0)],
+                grid_cols: vec![Units::Stretch(1.0), Units::Stretch(1.0), Units::Pixels(50.0)],
+                ..Default::default()
+            },
+            material: materials.add(Color::TOMATO.into()),
+            ..Default::default()
+        }).with_node_children(|parent| {
+            parent.spawn_bundle(NodeBundle {
+                style: Style {
+                    row_index: 0,
+                    row_span: 1,
+                    col_index: 0,
+                    col_span: 2,
+                    ..Default::default()
+                },
+                material: materials.add(Color::FUCHSIA.into()),
+                ..Default::default()
+            });
+    
+            parent.spawn_bundle(NodeBundle {
+                style: Style {
+                    row_index: 0,
+                    row_span: 1,
+                    col_index: 2,
+                    col_span: 1,
+                    ..Default::default()
+                },
+                material: materials.add(Color::BISQUE.into()),
+                ..Default::default()
+            });
+    
+            parent.spawn_bundle(NodeBundle {
+                style: Style {
+                    row_index: 1,
+                    row_span: 2,
+                    col_index: 0,
+                    col_span: 1,
+                    layout_type: LayoutType::Grid,
+                    grid_rows: vec![Units::Stretch(1.0), Units::Stretch(1.0), Units::Stretch(1.0), Units::Stretch(1.0)],
+                    grid_cols: vec![Units::Stretch(1.0), Units::Stretch(1.0), Units::Stretch(1.0)],
+                    ..Default::default()
+                },
+                material: materials.add(Color::PINK.into()),
+                ..Default::default()
+            }).with_node_children(|parent|{
+                parent.spawn_bundle(NodeBundle {
+                    style: Style {
+                        row_index: 0,
+                        row_span: 1,
+                        col_index: 0,
+                        col_span: 2,
+                        ..Default::default()
+                    },
+                    material: materials.add(Color::OLIVE.into()),
+                    ..Default::default()
+                });
+        
+                parent.spawn_bundle(NodeBundle {
+                    style: Style {
+                        row_index: 0,
+                        row_span: 1,
+                        col_index: 2,
+                        col_span: 1,
+                        ..Default::default()
+                    },
+                    material: materials.add(Color::VIOLET.into()),
+                    ..Default::default()
+                });
+        
+                parent.spawn_bundle(NodeBundle {
+                    style: Style {
+                        row_index: 1,
+                        row_span: 2,
+                        col_index: 0,
+                        col_span: 1,
+                        ..Default::default()
+                    },
+                    material: materials.add(Color::TOMATO.into()),
+                    ..Default::default()
+                });
+        
+                parent.spawn_bundle(NodeBundle {
+                    style: Style {
+                        row_index: 1,
+                        row_span: 1,
+                        col_index: 1,
+                        col_span: 2,
+                        ..Default::default()
+                    },
+                    material: materials.add(Color::NAVY.into()),
+                    ..Default::default()
+                });
+        
+                parent.spawn_bundle(NodeBundle {
+                    style: Style {
+                        row_index: 3,
+                        row_span: 1,
+                        col_index: 0,
+                        col_span: 1,
+                        ..Default::default()
+                    },
+                    material: materials.add(Color::CRIMSON.into()),
+                    ..Default::default()
+                });
+        
+                parent.spawn_bundle(NodeBundle {
+                    style: Style {
+                        row_index: 2,
+                        row_span: 2,
+                        col_index: 1,
+                        col_span: 1,
+                        ..Default::default()
+                    },
+                    material: materials.add(Color::SEA_GREEN.into()),
+                    ..Default::default()
+                });
+        
+                parent.spawn_bundle(NodeBundle {
+                    style: Style {
+                        row_index: 2,
+                        row_span: 2,
+                        col_index: 2,
+                        col_span: 1,
+                        ..Default::default()
+                    },
+                    material: materials.add(Color::TEAL.into()),
+                    ..Default::default()
+                });
+            });
+    
+            parent.spawn_bundle(NodeBundle {
+                style: Style {
+                    row_index: 1,
+                    row_span: 1,
+                    col_index: 1,
+                    col_span: 2,
+                    ..Default::default()
+                },
+                material: materials.add(Color::SALMON.into()),
+                ..Default::default()
+            });
+    
+            parent.spawn_bundle(NodeBundle {
+                style: Style {
+                    row_index: 3,
+                    row_span: 1,
+                    col_index: 0,
+                    col_span: 1,
+                    ..Default::default()
+                },
+                material: materials.add(Color::CYAN.into()),
+                ..Default::default()
+            });
+    
+            parent.spawn_bundle(NodeBundle {
+                style: Style {
+                    row_index: 2,
+                    row_span: 2,
+                    col_index: 1,
+                    col_span: 1,
+                    ..Default::default()
+                },
+                material: materials.add(Color::YELLOW.into()),
+                ..Default::default()
+            });
+    
+            parent.spawn_bundle(NodeBundle {
+                style: Style {
+                    row_index: 2,
+                    row_span: 2,
+                    col_index: 2,
+                    col_span: 1,
+                    ..Default::default()
+                },
+                material: materials.add(Color::DARK_GRAY.into()),
+                ..Default::default()
+            });
+        });
+
+        parent.spawn_bundle(NodeBundle {
+            style: Style {
+                row_index: 1,
+                row_span: 1,
+                col_index: 1,
+                col_span: 2,
+                ..Default::default()
+            },
+            material: materials.add(Color::NAVY.into()),
+            ..Default::default()
+        });
+
+        parent.spawn_bundle(NodeBundle {
+            style: Style {
+                row_index: 3,
+                row_span: 1,
+                col_index: 0,
+                col_span: 1,
+                ..Default::default()
+            },
+            material: materials.add(Color::CRIMSON.into()),
+            ..Default::default()
+        });
+
+        parent.spawn_bundle(NodeBundle {
+            style: Style {
+                row_index: 2,
+                row_span: 2,
+                col_index: 1,
+                col_span: 1,
+                ..Default::default()
+            },
+            material: materials.add(Color::SEA_GREEN.into()),
+            ..Default::default()
+        });
+
+        parent.spawn_bundle(NodeBundle {
+            style: Style {
+                row_index: 2,
+                row_span: 2,
+                col_index: 2,
+                col_span: 1,
+                ..Default::default()
+            },
+            material: materials.add(Color::TEAL.into()),
+            ..Default::default()
+        });
+    });
+
+    /*
     commands
         .spawn_bundle(NodeBundle {
             style: Style {
@@ -215,4 +486,5 @@ fn setup(
                     });
                 });
         });
+    */
 }
