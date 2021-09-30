@@ -20,7 +20,7 @@ impl NodeEntity {
 }
 
 impl<'world> morphorm::Node<'world> for NodeEntity {
-    type Data = Query<'world, &'static Style>;
+    type Data = Query<'world, 'world, &'static Style>;
 
     fn layout_type(&self, query: &Self::Data) -> Option<LayoutType> {
         query.get(self.entity()).map_or(None, |style| Some(style.layout_type))
@@ -169,16 +169,16 @@ pub struct NodeFirstChild(pub NodeEntity);
 pub struct NodeNextSibling(pub NodeEntity);
 
 
-pub struct Tree<'borrow, 'world> {
+pub struct Tree<'borrow, 'world, 'state> {
     root: NodeEntity,
-    parent_query: &'borrow Query<'world, &'static NodeParent>,
-    first_child_query: &'borrow Query<'world, &'static NodeFirstChild>,
-    next_sibling_query: &'borrow Query<'world, &'static NodeNextSibling>,
+    parent_query: &'borrow Query<'world, 'state, &'static NodeParent>,
+    first_child_query: &'borrow Query<'world, 'state, &'static NodeFirstChild>,
+    next_sibling_query: &'borrow Query<'world, 'state, &'static NodeNextSibling>,
 }
 
-impl<'borrow,'world> Tree<'borrow,'world>
+impl<'borrow,'world,'state> Tree<'borrow,'world,'state>
 {
-    pub fn new(root: NodeEntity, parent_query: &'borrow Query<'world, &'static NodeParent>, first_child_query: &'borrow Query<'world, &'static NodeFirstChild>, next_sibling_query: &'borrow Query<'world, &'static NodeNextSibling>) -> Self {
+    pub fn new(root: NodeEntity, parent_query: &'borrow Query<'world, 'state, &'static NodeParent>, first_child_query: &'borrow Query<'world, 'state, &'static NodeFirstChild>, next_sibling_query: &'borrow Query<'world, 'state, &'static NodeNextSibling>) -> Self {
         Self {
             root,
             parent_query,
@@ -188,7 +188,7 @@ impl<'borrow,'world> Tree<'borrow,'world>
     }
 }
 
-impl<'borrow,'world> Tree<'borrow,'world>
+impl<'borrow,'world,'state> Tree<'borrow,'world,'state>
 {
     pub fn flatten(&self) -> Vec<NodeEntity> {
 
@@ -212,12 +212,12 @@ impl<'borrow,'world> Tree<'borrow,'world>
     }
 }
 
-impl<'borrow,'world> morphorm::Hierarchy<'borrow> for Tree<'borrow,'world> 
+impl<'borrow,'world,'state> morphorm::Hierarchy<'borrow> for Tree<'borrow,'world,'state> 
 {
     type Item = NodeEntity;
     type DownIter = std::vec::IntoIter<NodeEntity>;
     type UpIter = Rev<std::vec::IntoIter<NodeEntity>>;
-    type ChildIter = ChildIterator<'borrow, 'world>;
+    type ChildIter = ChildIterator<'borrow, 'world, 'state>;
 
     fn up_iter(&self) -> Self::UpIter {
         self.flatten().into_iter().rev()
@@ -268,14 +268,14 @@ impl<'borrow,'world> morphorm::Hierarchy<'borrow> for Tree<'borrow,'world>
 
 }
 
-pub struct DownwardIterator<'borrow,'world> {
-    parent_query: &'borrow Query<'world, &'static NodeParent>,
-    first_child_query: &'borrow Query<'world, &'static NodeFirstChild>,
-    next_sibling_query: &'borrow Query<'world, &'static NodeNextSibling>,
+pub struct DownwardIterator<'borrow,'world,'state> {
+    parent_query: &'borrow Query<'world, 'state, &'static NodeParent>,
+    first_child_query: &'borrow Query<'world, 'state, &'static NodeFirstChild>,
+    next_sibling_query: &'borrow Query<'world, 'state, &'static NodeNextSibling>,
     current_node: Option<NodeEntity>,
 }
 
-impl<'borrow,'world> Iterator for DownwardIterator<'borrow,'world> {
+impl<'borrow,'world,'state> Iterator for DownwardIterator<'borrow,'world,'state> {
     type Item = NodeEntity;
     fn next(&mut self) -> Option<NodeEntity> {
 
@@ -304,12 +304,12 @@ impl<'borrow,'world> Iterator for DownwardIterator<'borrow,'world> {
     }
 }
 
-pub struct ChildIterator<'borrow, 'world> {
-    pub next_sibling_query: &'borrow Query<'world, &'static NodeNextSibling>,
+pub struct ChildIterator<'borrow, 'world,'state> {
+    pub next_sibling_query: &'borrow Query<'world, 'state, &'static NodeNextSibling>,
     pub current_node: Option<NodeEntity>,
 }
 
-impl<'borrow, 'world> Iterator for ChildIterator<'borrow, 'world> {
+impl<'borrow, 'world, 'state> Iterator for ChildIterator<'borrow, 'world, 'state> {
     type Item = NodeEntity;
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(entity) = self.current_node {
@@ -691,19 +691,19 @@ impl Command for PushNodes {
     }
 }
 
-pub struct NodeBuilder<'a, 'b> {
-    commands: &'b mut Commands<'a>,
+pub struct NodeBuilder<'a, 'b, 'state> {
+    commands: &'b mut Commands<'a, 'state>,
     push_children: PushNodes,
 }
 
-impl<'a, 'b> NodeBuilder<'a, 'b> {
-    pub fn spawn_bundle(&mut self, bundle: impl Bundle) -> EntityCommands<'a, '_> {
+impl<'a, 'b, 'state> NodeBuilder<'a, 'b, 'state> {
+    pub fn spawn_bundle(&mut self, bundle: impl Bundle) -> EntityCommands<'a, 'state, '_> {
         let e = self.commands.spawn_bundle(bundle);
         self.push_children.children.push(e.id());
         e
     }
 
-    pub fn spawn(&mut self) -> EntityCommands<'a, '_> {
+    pub fn spawn(&mut self) -> EntityCommands<'a, 'state, '_> {
         let e = self.commands.spawn();
         self.push_children.children.push(e.id());
         e
@@ -724,7 +724,7 @@ pub trait TreeBuilder {
     fn with_node_children(&mut self, f: impl FnOnce(&mut NodeBuilder)) -> &mut Self;
 }
 
-impl<'a, 'b> TreeBuilder for EntityCommands<'a, 'b> {
+impl<'a, 'b, 'state> TreeBuilder for EntityCommands<'a, 'state, 'b> {
     fn with_node_children(&mut self, spawn_children: impl FnOnce(&mut NodeBuilder)) -> &mut Self {
         let parent = self.id();
         let push_children = {
